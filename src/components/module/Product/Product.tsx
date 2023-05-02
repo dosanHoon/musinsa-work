@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import styled from "styled-components";
 
 export interface ProductType {
@@ -19,29 +20,56 @@ interface Props {
   product: ProductType;
 }
 
+function roundToOne(num: number) {
+  return Math.round(num / 10) * 10;
+}
+
+function applyDiscount(price: number, discountRate: number) {
+  const discountedPrice = price * (1 - discountRate / 100);
+  return roundToOne(discountedPrice);
+}
+
 export const ProductCard = ({ product }: Props) => {
-  const { goodsName, imageUrl, price, brandName } = product;
+  const {
+    goodsName,
+    imageUrl,
+    price,
+    brandName,
+    isExclusive,
+    isSoldOut,
+    isSale,
+    saleRate,
+  } = product;
+
+  const salePrice = useMemo(
+    () => applyDiscount(price, saleRate).toLocaleString("ko-KR"),
+    [saleRate, price]
+  );
   return (
     <ProductContainer>
       <ProductImage>
-        <SoldoutDim>SOLD OUT</SoldoutDim>
+        {isSoldOut && <SoldoutDim>SOLD OUT</SoldoutDim>}
         <img src={imageUrl} alt={goodsName} />
       </ProductImage>
       <ProductInfo>
-        <LabelBox>단독</LabelBox>
+        {isExclusive && <LabelBox>단독</LabelBox>}
         <ProductTitle>
           <BranName>{brandName}</BranName>
           <ProducName>{goodsName}</ProducName>
         </ProductTitle>
         <ProductPriceContainer>
-          <ProductPrice>{price}원</ProductPrice>
-          <div>
-            <RedBoldText>34%</RedBoldText>
-          </div>
+          <ProductPrice>{price.toLocaleString("ko-KR")}원</ProductPrice>
+          {isSale && (
+            <div>
+              <RedBoldText>{saleRate}%</RedBoldText>
+            </div>
+          )}
         </ProductPriceContainer>
-        <SalePrice>
-          <span>24,900원</span>
-        </SalePrice>
+        {isSale && (
+          <SalePrice>
+            <span>{salePrice}원</span>
+          </SalePrice>
+        )}
       </ProductInfo>
     </ProductContainer>
   );
