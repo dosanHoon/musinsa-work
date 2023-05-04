@@ -1,26 +1,66 @@
-import { FC } from "react";
+import { FC, ReactNode, useMemo } from "react";
 import styled from "styled-components";
 import IonClose from "assets/ico_close.png";
 import IconRefresh from "assets/ico_refresh.png";
+import { FilterType, useProductListStore } from "store/ProductListStore";
 
-interface Props {
-  list: string[];
-}
+export const SearchTagBox: FC = () => {
+  const {
+    searchKeyword,
+    removeSearchKeyword,
+    selectedFilters,
+    toggleFilter,
+    clearFilter,
+  } = useProductListStore((state) => ({
+    searchKeyword: state.searchKeyword,
+    removeSearchKeyword: state.removeSearchKeyword,
+    selectedFilters: state.selectedFilters,
+    toggleFilter: state.toggleFilter,
+    clearFilter: state.clearFilter,
+  }));
 
-export const SearchTagBox: FC<Props> = ({ list }) => {
+  const renderSearchTag = useMemo(() => {
+    const tags: ReactNode[] = [];
+    selectedFilters.forEach((value) => {
+      const keyword = value;
+      tags.push(
+        <SearchTag key={keyword} onClick={() => toggleFilter(keyword)}>
+          <span>{FilterType[keyword]}</span>
+          <img src={IonClose} alt="IonClose" width={14} height={14} />
+        </SearchTag>
+      );
+    });
+
+    return tags;
+  }, [selectedFilters, toggleFilter]);
+
+  if (selectedFilters.size === 0) return <></>;
+
   return (
     <Container>
       <SearchTagContainer>
-        <SearchTag>
-          <span>세일상품</span>
-          <img src={IonClose} alt="IonClose" width={14} height={14} />
-        </SearchTag>
-        <SearchTag>
-          <span>세일상품</span>
-          <img src={IonClose} alt="IonClose" width={14} height={14} />
-        </SearchTag>
+        {!!searchKeyword.length &&
+          searchKeyword.map((keyword) => (
+            <SearchTag>
+              <span>{keyword}</span>
+              <img
+                src={IonClose}
+                alt="IonClose"
+                width={14}
+                height={14}
+                onClick={() => removeSearchKeyword(keyword)}
+              />
+            </SearchTag>
+          ))}
+        {renderSearchTag}
       </SearchTagContainer>
-      <img src={IconRefresh} alt="IonClose" width={22} height={22} />
+      <img
+        src={IconRefresh}
+        alt="IonClose"
+        width={22}
+        height={22}
+        onClick={clearFilter}
+      />
     </Container>
   );
 };

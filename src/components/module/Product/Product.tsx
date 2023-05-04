@@ -1,20 +1,6 @@
 import { useMemo } from "react";
+import { ProductType } from "store/ProductListStore";
 import styled from "styled-components";
-
-export interface ProductType {
-  goodsNo: number;
-  goodsName: string;
-  price: number;
-  brandName: string;
-  imageUrl: string;
-  linkUrl: string;
-  brandLinkUrl: string;
-  normalPrice: number;
-  isSale: boolean;
-  saleRate: number;
-  isSoldOut: boolean;
-  isExclusive: boolean;
-}
 
 interface Props {
   product: ProductType;
@@ -45,11 +31,16 @@ export const ProductCard = ({ product }: Props) => {
     () => applyDiscount(price, saleRate).toLocaleString("ko-KR"),
     [saleRate, price]
   );
+
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    e.currentTarget.src =
+      "https://image.msscdn.net/musinsaUI/homework/data/img.jpg";
+  };
   return (
     <ProductContainer>
       <ProductImage>
         {isSoldOut && <SoldoutDim>SOLD OUT</SoldoutDim>}
-        <img src={imageUrl} alt={goodsName} />
+        <img src={imageUrl} alt={goodsName} onError={handleImageError} />
       </ProductImage>
       <ProductInfo>
         {isExclusive && <LabelBox>단독</LabelBox>}
@@ -122,6 +113,7 @@ const ProducName = styled.span`
   font-weight: 700;
   font-size: 14px;
   line-height: 18px;
+  height: 36px;
   ${ellipsis}
 `;
 
@@ -148,6 +140,7 @@ const ProductImage = styled.div`
   flex-grow: 0;
   & > img {
     width: 100%;
+    height: 100%;
   }
 `;
 
