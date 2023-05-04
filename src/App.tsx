@@ -1,4 +1,3 @@
-import React from "react";
 import logo from "./assets/logo_musinsa.png";
 import styled from "styled-components";
 
@@ -23,13 +22,13 @@ const Container = styled.div`
   width: 100%;
   max-width: 375px;
   height: 100%;
-  background: #f1f1f1;
   margin: 0 auto;
 `;
 
 const LogoContainer = styled.div`
   position: relative;
   height: 50px;
+  background: #ffffff;
 `;
 
 const Header = styled.header`
@@ -40,7 +39,8 @@ const Header = styled.header`
   left: 50%;
   transform: translate(-50%, 0);
   top: 0px;
-  background: #ffffff;
+  background: #f1f1f1;
+  padding-bottom: 10px;
 `;
 
 const Logo = styled.img`

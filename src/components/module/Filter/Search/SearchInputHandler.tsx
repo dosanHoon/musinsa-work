@@ -1,24 +1,61 @@
 import styled from "styled-components";
 import { SearchIcon } from "components/atom/SearchIcon";
 import { useProductListStore } from "store/ProductListStore";
+import { useMemo, useState } from "react";
 
 export const SearchInputHandler = () => {
-  const store = useProductListStore((state) => ({
-    isSearch: state.isSearch,
-  }));
+  const [keyword, setKeyword] = useState("");
+  const { isSearch, filterdProductList, addSearchKeyword, toggleIsSearch } =
+    useProductListStore((state) => ({
+      isSearch: state.isSearch,
+      toggleIsSearch: state.toggleIsSearch,
+      filterdProductList: state.filterdProductList,
+      addSearchKeyword: state.addSearchKeyword,
+    }));
 
-  if (!store.isSearch) return null;
+  const onChangeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setKeyword(e.target.value);
+  };
+
+  const autoCompleteItems = useMemo(() => {
+    const list = new Set<string>();
+    if (!keyword) return [];
+    filterdProductList().forEach((product) => {
+      if (product.brandName.includes(keyword)) {
+        list.add(product.brandName);
+      }
+      if (product.goodsName.includes(keyword)) {
+        list.add(product.goodsName);
+      }
+    });
+    return Array.from(list);
+  }, [filterdProductList, keyword]);
+
+  const onSelectItem = (item: string) => {
+    addSearchKeyword(item);
+    toggleIsSearch();
+  };
+
+  if (!isSearch) return null;
 
   return (
     <SearchContainer>
       <InpuContainer>
         <SearchIcon width={22} height={22} />
-        <StyledInput type="text" placeholder="상품명 검색" />
-        <AutoCompleteContainer>
-          <AutoCompleteItem>검색어1</AutoCompleteItem>
-          <AutoCompleteItem>검색어2</AutoCompleteItem>
-          <AutoCompleteItem>검색어3</AutoCompleteItem>
-        </AutoCompleteContainer>
+        <StyledInput
+          type="text"
+          placeholder="상품명 검색"
+          onChange={onChangeHandler}
+        />
+        {autoCompleteItems.length > 0 && (
+          <AutoCompleteContainer>
+            {autoCompleteItems.map((item) => (
+              <AutoCompleteItem key={item} onClick={() => onSelectItem(item)}>
+                {item}
+              </AutoCompleteItem>
+            ))}
+          </AutoCompleteContainer>
+        )}
       </InpuContainer>
     </SearchContainer>
   );
@@ -26,14 +63,13 @@ export const SearchInputHandler = () => {
 
 const AutoCompleteContainer = styled.div`
   position: absolute;
-  top: 100%;
-  left: 0;
-  width: 100%;
+  top: calc(100% - 15px);
+  left: 15px;
+  width: calc(100% - 30px);
   background: #ffffff;
-  border: 1px solid #cccccc;
-  border-top: none;
+
   box-sizing: border-box;
-  z-index: 100;
+  z-index: 300;
 `;
 
 const AutoCompleteItem = styled.div`
@@ -45,6 +81,7 @@ const AutoCompleteItem = styled.div`
   &:hover {
     background: #f9f9f9;
   }
+  z-index: 300;
 `;
 
 const InpuContainer = styled.div`
@@ -68,4 +105,5 @@ const StyledInput = styled.input`
 const SearchContainer = styled.div`
   background: #f9f9f9;
   padding: 20px 15px;
+  position: relative;
 `;

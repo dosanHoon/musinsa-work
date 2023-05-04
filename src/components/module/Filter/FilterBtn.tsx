@@ -23,13 +23,16 @@ export const FilterBtn: FC<FilterBtnProps> = ({ children, keyword }) => {
   }, [store, keyword]);
 
   return (
-    <Container isActive={hasFilter(keyword)} onClick={clickHandler}>
+    <Container isColor={hasFilter(keyword)} onClick={clickHandler}>
       {children}
     </Container>
   );
 };
 
-export const Container = styled.div<{ isActive?: boolean }>`
+export const Container = styled.div<{
+  isBackground?: boolean;
+  isColor?: boolean;
+}>`
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -40,6 +43,8 @@ export const Container = styled.div<{ isActive?: boolean }>`
   font-weight: 400;
   font-size: 14px;
   line-height: 21px;
-  background: ${(props) => (props.isActive ? " #0078FF" : "#ffffff")};
-  color: ${(props) => (props.isActive ? "white" : "")};
+  background: ${(props) => (props.isBackground ? " #0078FF" : "#ffffff")};
+  color: ${(props) => (props.isBackground ? "#ffffff" : "")};
+  ${({ isColor }) => (isColor ? `color: #0078FF;` : "")}
+  cursor: pointer;
 `;

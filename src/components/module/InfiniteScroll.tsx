@@ -8,17 +8,25 @@ interface Props {
 }
 
 const InfiniteScroll: FC<Props> = ({ fetchData, children }) => {
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [throttle, setThrottle] = useState(false);
   const loader = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting) {
-          setIsLoading(true);
-          fetchData().then(() => {
-            setIsLoading(false);
-          });
+        if (entries[0].isIntersecting && !isLoading) {
+          if (throttle) return;
+          if (!throttle) {
+            setThrottle(true);
+            setTimeout(() => {
+              setIsLoading(true);
+              fetchData().then(() => {
+                setIsLoading(false);
+              });
+              setThrottle(false);
+            }, 500);
+          }
         }
       },
       { threshold: 1 }
@@ -31,17 +39,19 @@ const InfiniteScroll: FC<Props> = ({ fetchData, children }) => {
     return () => {
       observer.disconnect();
     };
-  }, [loader, setIsLoading, fetchData]);
+  }, [loader, setIsLoading, fetchData, isLoading, setThrottle, throttle]);
 
   return (
-    <div>
+    <>
       {children}
       <div ref={loader}>
-        <Continaer>
-          {isLoading && <img src={loadingSpinner} alt="loading" />}
-        </Continaer>
+        {isLoading && (
+          <Continaer>
+            <img src={loadingSpinner} alt="loading" />
+          </Continaer>
+        )}
       </div>
-    </div>
+    </>
   );
 };
 

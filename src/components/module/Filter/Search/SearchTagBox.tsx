@@ -7,13 +7,13 @@ import { FilterType, useProductListStore } from "store/ProductListStore";
 export const SearchTagBox: FC = () => {
   const {
     searchKeyword,
-    removeSearchKeyword,
+    toggleSearchKeyword,
     selectedFilters,
     toggleFilter,
     clearFilter,
   } = useProductListStore((state) => ({
     searchKeyword: state.searchKeyword,
-    removeSearchKeyword: state.removeSearchKeyword,
+    toggleSearchKeyword: state.toggleSearchKeyword,
     selectedFilters: state.selectedFilters,
     toggleFilter: state.toggleFilter,
     clearFilter: state.clearFilter,
@@ -34,21 +34,21 @@ export const SearchTagBox: FC = () => {
     return tags;
   }, [selectedFilters, toggleFilter]);
 
-  if (selectedFilters.size === 0) return <></>;
+  if (selectedFilters.size === 0 && searchKeyword.size === 0) return <></>;
 
   return (
     <Container>
       <SearchTagContainer>
-        {!!searchKeyword.length &&
-          searchKeyword.map((keyword) => (
-            <SearchTag>
+        {!!searchKeyword.size &&
+          Array.from(searchKeyword).map((keyword) => (
+            <SearchTag key={keyword}>
               <span>{keyword}</span>
               <img
                 src={IonClose}
                 alt="IonClose"
                 width={14}
                 height={14}
-                onClick={() => removeSearchKeyword(keyword)}
+                onClick={() => toggleSearchKeyword(keyword)}
               />
             </SearchTag>
           ))}

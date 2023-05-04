@@ -11,16 +11,20 @@ import {
 } from "store/ProductListStore";
 
 export const TopFilterBox = () => {
-  const { toggleIsSearch, searchKeyword } = useProductListStore((state) => ({
-    toggleIsSearch: state.toggleIsSearch,
-    searchKeyword: state.searchKeyword,
-  }));
+  const { toggleIsSearch, searchKeyword, isSearch } = useProductListStore(
+    (state) => ({
+      toggleIsSearch: state.toggleIsSearch,
+      searchKeyword: state.searchKeyword,
+      isSearch: state.isSearch,
+    })
+  );
 
   return (
     <Container>
       <FilterBtnContainer>
         <SearchFitlerBtn
-          isActive={searchKeyword.length > 0}
+          isBackground={isSearch}
+          isColor={searchKeyword.size > 0}
           onClick={toggleIsSearch}
         >
           <span>검색</span>

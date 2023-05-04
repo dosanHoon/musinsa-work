@@ -48,8 +48,9 @@ type ProductListStore = {
   fetchData: (state: any) => Promise<void>;
   selectedFilters: Set<filterTagType>;
   toggleFilter: (filter: filterTagType) => void;
-  searchKeyword: string[];
-  removeSearchKeyword: (keyword: string) => void;
+  searchKeyword: Set<string>;
+  addSearchKeyword: (keyword: string) => void;
+  toggleSearchKeyword: (keyword: string) => void;
   filterdProductList: () => ProductType[];
   clearFilter: () => void;
 };
@@ -57,19 +58,19 @@ type ProductListStore = {
 export const TOTALPAGE = data.length;
 
 export const useProductListStore = create<ProductListStore>((set, get) => ({
-  productList: data[0],
+  productList: [],
   selectedFilters: new Set(),
   isSearch: false,
-  searchKeyword: [],
+  searchKeyword: new Set<string>(),
   filterdProductList: () => {
-    const { productList, selectedFilters } = get();
+    const { productList, selectedFilters, searchKeyword } = get();
     const hasIsExclusive = selectedFilters.has(isExclusive);
     const hasIsSale = selectedFilters.has(isSale);
-    if (selectedFilters.size === 0) {
+    if (selectedFilters.size === 0 && searchKeyword.size === 0) {
       return productList.filter((product) => !product.isSoldOut);
     }
     return productList.filter((product) => {
-      let filtered = false;
+      let filtered = true;
       if (selectedFilters.has(isSoldOut)) {
         filtered = true;
       } else if (product.isSoldOut) {
@@ -84,10 +85,16 @@ export const useProductListStore = create<ProductListStore>((set, get) => ({
         filtered = product.isExclusive;
       }
 
-      //  || selectedFilters.has(isSale))
-      //   filtered = product.isSale || product.isExclusive;
-      // if (selectedFilters.has(search)) {
-      // }
+      if (searchKeyword.size > 0) {
+        filtered =
+          Array.from(searchKeyword).some((keyword) => {
+            return (
+              product.goodsName.includes(keyword) ||
+              product.brandName.includes(keyword)
+            );
+          }) && filtered;
+      }
+
       return filtered;
     });
   },
@@ -97,9 +104,9 @@ export const useProductListStore = create<ProductListStore>((set, get) => ({
     return new Promise<void>((resolve) => {
       setTimeout(() => {
         set((state) => ({
-          productList: [...state.productList, ...data[page + 1]],
+          productList: [...state.productList, ...data[page]],
         }));
-
+        console.log("fetchData done", page);
         resolve();
       }, 2000);
     });
@@ -118,14 +125,26 @@ export const useProductListStore = create<ProductListStore>((set, get) => ({
       }
       return { selectedFilters };
     }),
-  removeSearchKeyword: (keyword: string) =>
+  addSearchKeyword: (keyword: string) =>
     set((state) => {
-      const searchKeyword = [...state.searchKeyword];
-      if (state.searchKeyword.includes(keyword)) {
-        searchKeyword.splice(state.searchKeyword.indexOf(keyword), 1);
+      const searchKeyword = new Set(state.searchKeyword);
+      searchKeyword.add(keyword);
+      return { searchKeyword };
+    }),
+  toggleSearchKeyword: (keyword: string) =>
+    set((state) => {
+      const searchKeyword = new Set(state.searchKeyword);
+      if (searchKeyword.has(keyword)) {
+        searchKeyword.delete(keyword);
+      } else {
+        searchKeyword.add(keyword);
       }
       return { searchKeyword };
     }),
   clearFilter: () =>
-    set((state) => ({ selectedFilters: new Set(), searchKeyword: [] })),
+    set((state) => ({
+      selectedFilters: new Set(),
+      searchKeyword: new Set(),
+      isSearch: false,
+    })),
 }));
