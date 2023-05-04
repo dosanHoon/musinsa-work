@@ -4,6 +4,7 @@ import { SearchIcon } from "components/atom/SearchIcon";
 import { SearchTagBox } from "./Search/SearchTagBox";
 import { FilterBtn, Container as SearchFitlerBtn } from "./FilterBtn";
 import {
+  filterTypeName,
   isExclusive,
   isSale,
   isSoldOut,
@@ -30,9 +31,11 @@ export const TopFilterBox = () => {
           <span>검색</span>
           <SearchIcon style={{ marginLeft: 3 }} />
         </SearchFitlerBtn>
-        <FilterBtn keyword={isSale}>세일상품</FilterBtn>
-        <FilterBtn keyword={isExclusive}>단독상품</FilterBtn>
-        <FilterBtn keyword={isSoldOut}>품절포함</FilterBtn>
+        <FilterBtn keyword={isSale}>{filterTypeName.isSale}</FilterBtn>
+        <FilterBtn keyword={isExclusive}>
+          {filterTypeName.isExclusive}
+        </FilterBtn>
+        <FilterBtn keyword={isSoldOut}>{filterTypeName.isSoldOut}</FilterBtn>
       </FilterBtnContainer>
       <SearchInputHandler />
       <SearchTagBox />

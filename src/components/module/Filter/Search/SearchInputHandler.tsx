@@ -1,15 +1,16 @@
+import { useMemo, useState } from "react";
 import styled from "styled-components";
 import { SearchIcon } from "components/atom/SearchIcon";
 import { useProductListStore } from "store/ProductListStore";
-import { useMemo, useState } from "react";
 
 export const SearchInputHandler = () => {
   const [keyword, setKeyword] = useState("");
-  const { isSearch, filterdProductList, addSearchKeyword, toggleIsSearch } =
+
+  const { isSearch, productList, addSearchKeyword, toggleIsSearch } =
     useProductListStore((state) => ({
       isSearch: state.isSearch,
       toggleIsSearch: state.toggleIsSearch,
-      filterdProductList: state.filterdProductList,
+      productList: state.productList,
       addSearchKeyword: state.addSearchKeyword,
     }));
 
@@ -20,16 +21,16 @@ export const SearchInputHandler = () => {
   const autoCompleteItems = useMemo(() => {
     const list = new Set<string>();
     if (!keyword) return [];
-    filterdProductList().forEach((product) => {
-      if (product.brandName.includes(keyword)) {
-        list.add(product.brandName);
+    productList.forEach(({ brandName, goodsName }) => {
+      if (brandName.includes(keyword)) {
+        list.add(brandName);
       }
-      if (product.goodsName.includes(keyword)) {
-        list.add(product.goodsName);
+      if (goodsName.includes(keyword)) {
+        list.add(goodsName);
       }
     });
     return Array.from(list);
-  }, [filterdProductList, keyword]);
+  }, [productList, keyword]);
 
   const onSelectItem = (item: string) => {
     addSearchKeyword(item);

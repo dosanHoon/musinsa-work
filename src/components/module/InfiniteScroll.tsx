@@ -7,8 +7,12 @@ interface Props {
   children: React.ReactNode;
 }
 
+// 무한 스크롤 컴포넌트
+// 재사용성을 위해서 컴포넌트로 정의함.
+// 로딩 UI와 로딩 상태를 관리함.
 const InfiniteScroll: FC<Props> = ({ fetchData, children }) => {
   const [isLoading, setIsLoading] = useState(false);
+  // 중복 호출 방지
   const [throttle, setThrottle] = useState(false);
   const loader = useRef<HTMLDivElement>(null);
 
@@ -18,13 +22,13 @@ const InfiniteScroll: FC<Props> = ({ fetchData, children }) => {
         if (entries[0].isIntersecting && !isLoading) {
           if (throttle) return;
           if (!throttle) {
-            setThrottle(true);
             setTimeout(() => {
+              setThrottle(true);
               setIsLoading(true);
               fetchData().then(() => {
                 setIsLoading(false);
+                setThrottle(false);
               });
-              setThrottle(false);
             }, 500);
           }
         }
@@ -45,11 +49,9 @@ const InfiniteScroll: FC<Props> = ({ fetchData, children }) => {
     <>
       {children}
       <div ref={loader}>
-        {isLoading && (
-          <Continaer>
-            <img src={loadingSpinner} alt="loading" />
-          </Continaer>
-        )}
+        <Continaer>
+          {isLoading && <img src={loadingSpinner} alt="loading" />}
+        </Continaer>
       </div>
     </>
   );

@@ -23,15 +23,14 @@ export interface ProductType {
 export const isSale = "isSale";
 export const isExclusive = "isExclusive";
 export const isSoldOut = "isSoldOut";
-export const search = "search";
 
-export const FilterType = {
+export const filterTypeName = {
   isSale: "세일상품",
   isExclusive: "단독상품",
   isSoldOut: "품절포함",
 };
 
-export type filterTagType = "isSale" | "isExclusive" | "isSoldOut";
+export type filterTagType = keyof typeof filterTypeName;
 
 const data = [
   data01.data.list,
@@ -42,41 +41,74 @@ const data = [
 
 type ProductListStore = {
   productList: ProductType[];
-  isSearch: boolean;
-  toggleIsSearch: () => void;
   addProduct: (list: any[]) => void;
   fetchData: (state: any) => Promise<void>;
   selectedFilters: Set<filterTagType>;
   toggleFilter: (filter: filterTagType) => void;
+  filterdProductList: (
+    productList: ProductType[],
+    selectedFilters: Set<filterTagType>,
+    searchKeyword: Set<string>
+  ) => ProductType[];
+  isSearch: boolean;
+  toggleIsSearch: () => void;
   searchKeyword: Set<string>;
   addSearchKeyword: (keyword: string) => void;
   toggleSearchKeyword: (keyword: string) => void;
-  filterdProductList: () => ProductType[];
   clearFilter: () => void;
 };
 
 export const TOTALPAGE = data.length;
 
+function toggleHandler<T>(source: Set<T>, keyword: T) {
+  const newSet = new Set(source);
+  if (newSet.has(keyword)) {
+    newSet.delete(keyword);
+  } else {
+    newSet.add(keyword);
+  }
+  return newSet;
+}
+
 export const useProductListStore = create<ProductListStore>((set, get) => ({
-  productList: [],
+  productList: [...data[0]],
+  addProduct: (list) =>
+    set((state) => ({ productList: [...state.productList, ...list] })),
+  fetchData: (page) => {
+    //SERVER API와 동일한 구조를 위해서 Promise와 setTimeout을 사용
+    return new Promise<void>((resolve) => {
+      setTimeout(() => {
+        set((state) => ({
+          productList: [...state.productList, ...data[page]],
+        }));
+        console.log("fetchData done", page);
+        resolve();
+      }, 1000);
+    });
+  },
   selectedFilters: new Set(),
-  isSearch: false,
-  searchKeyword: new Set<string>(),
-  filterdProductList: () => {
-    const { productList, selectedFilters, searchKeyword } = get();
+  toggleFilter: (filter: filterTagType) =>
+    set(({ selectedFilters }) => ({
+      selectedFilters: toggleHandler(selectedFilters, filter),
+    })),
+  //filterdProductList는 productList를 필터링한 결과를 반환
+  filterdProductList: (productList, selectedFilters, searchKeyword) => {
     const hasIsExclusive = selectedFilters.has(isExclusive);
     const hasIsSale = selectedFilters.has(isSale);
+    //선택된 필터가 없는 경우 품절 상품은 제외하고 모든 상품을 반환
     if (selectedFilters.size === 0 && searchKeyword.size === 0) {
       return productList.filter((product) => !product.isSoldOut);
     }
+    //선택된 필터가 있는 경우 선택된 필터에 따라 필터링
     return productList.filter((product) => {
       let filtered = true;
+      //품절 상품 필터가 선택된 경우 품절 상품을 포함
       if (selectedFilters.has(isSoldOut)) {
         filtered = true;
       } else if (product.isSoldOut) {
         return false;
       }
-
+      //단독 상품, 세일 상품 필터가 선택된 경우 해당 상품을 포함 OR 조건으로 동작
       if (hasIsExclusive && hasIsSale) {
         filtered = product.isExclusive || product.isSale;
       } else if (hasIsSale) {
@@ -84,7 +116,9 @@ export const useProductListStore = create<ProductListStore>((set, get) => ({
       } else if (hasIsExclusive) {
         filtered = product.isExclusive;
       }
-
+      //검색어를 입력한 경우
+      //상품명, 브랜드명에 검색어가 포함되어 있는 경우 필터링
+      //AND 조건으로 동작
       if (searchKeyword.size > 0) {
         filtered =
           Array.from(searchKeyword).some((keyword) => {
@@ -98,33 +132,9 @@ export const useProductListStore = create<ProductListStore>((set, get) => ({
       return filtered;
     });
   },
-  addProduct: (list) =>
-    set((state) => ({ productList: [...state.productList, ...list] })),
-  fetchData: (page) => {
-    return new Promise<void>((resolve) => {
-      setTimeout(() => {
-        set((state) => ({
-          productList: [...state.productList, ...data[page]],
-        }));
-        console.log("fetchData done", page);
-        resolve();
-      }, 2000);
-    });
-  },
-  toggleIsSearch: () =>
-    set((state) => {
-      return { isSearch: !state.isSearch };
-    }),
-  toggleFilter: (filter: filterTagType) =>
-    set((state) => {
-      const selectedFilters = new Set(state.selectedFilters);
-      if (selectedFilters.has(filter)) {
-        selectedFilters.delete(filter);
-      } else {
-        selectedFilters.add(filter);
-      }
-      return { selectedFilters };
-    }),
+  isSearch: false,
+  toggleIsSearch: () => set((state) => ({ isSearch: !state.isSearch })),
+  searchKeyword: new Set<string>(),
   addSearchKeyword: (keyword: string) =>
     set((state) => {
       const searchKeyword = new Set(state.searchKeyword);
@@ -132,17 +142,11 @@ export const useProductListStore = create<ProductListStore>((set, get) => ({
       return { searchKeyword };
     }),
   toggleSearchKeyword: (keyword: string) =>
-    set((state) => {
-      const searchKeyword = new Set(state.searchKeyword);
-      if (searchKeyword.has(keyword)) {
-        searchKeyword.delete(keyword);
-      } else {
-        searchKeyword.add(keyword);
-      }
-      return { searchKeyword };
-    }),
+    set(({ searchKeyword }) => ({
+      searchKeyword: toggleHandler(searchKeyword, keyword),
+    })),
   clearFilter: () =>
-    set((state) => ({
+    set(() => ({
       selectedFilters: new Set(),
       searchKeyword: new Set(),
       isSearch: false,

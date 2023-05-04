@@ -2,7 +2,7 @@ import { FC, ReactNode, useMemo } from "react";
 import styled from "styled-components";
 import IonClose from "assets/ico_close.png";
 import IconRefresh from "assets/ico_refresh.png";
-import { FilterType, useProductListStore } from "store/ProductListStore";
+import { filterTypeName, useProductListStore } from "store/ProductListStore";
 
 export const SearchTagBox: FC = () => {
   const {
@@ -25,7 +25,7 @@ export const SearchTagBox: FC = () => {
       const keyword = value;
       tags.push(
         <SearchTag key={keyword} onClick={() => toggleFilter(keyword)}>
-          <span>{FilterType[keyword]}</span>
+          <span>{filterTypeName[keyword]}</span>
           <img src={IonClose} alt="IonClose" width={14} height={14} />
         </SearchTag>
       );

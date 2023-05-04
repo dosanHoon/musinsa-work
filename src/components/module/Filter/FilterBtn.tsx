@@ -8,19 +8,19 @@ interface FilterBtnProps {
 }
 
 export const FilterBtn: FC<FilterBtnProps> = ({ children, keyword }) => {
-  const store = useProductListStore((state) => ({
+  const { toggleFilter, selectedFilters } = useProductListStore((state) => ({
     selectedFilters: state.selectedFilters,
     toggleFilter: state.toggleFilter,
   }));
 
   const hasFilter = useCallback(
-    (filter: filterTagType) => store.selectedFilters.has(filter),
-    [store]
+    (filter: filterTagType) => selectedFilters.has(filter),
+    [selectedFilters]
   );
 
   const clickHandler = useCallback(() => {
-    store.toggleFilter(keyword);
-  }, [store, keyword]);
+    toggleFilter(keyword);
+  }, [toggleFilter, keyword]);
 
   return (
     <Container isColor={hasFilter(keyword)} onClick={clickHandler}>

@@ -36,6 +36,7 @@ export const ProductCard = ({ product }: Props) => {
     e.currentTarget.src =
       "https://image.msscdn.net/musinsaUI/homework/data/img.jpg";
   };
+
   return (
     <ProductContainer>
       <ProductImage>
